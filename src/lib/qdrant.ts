@@ -2,11 +2,13 @@ import { QdrantVectorStore } from "@langchain/qdrant";
 import { embeddings } from "./embedding";
 
 export const addToQdrant = async (docs: any) => {
-  await QdrantVectorStore.fromDocuments(docs, embeddings, {
+  console.log("in addToQdrant ....... ")
+    await QdrantVectorStore.fromDocuments(docs, embeddings, {
     url: process.env.QDRANT_END_URL,
     apiKey: process.env.QDRANT_API_KEY,
     collectionName: "MindVault",
   });
+  
 };
 
 export const searchInQdrant = async () => {

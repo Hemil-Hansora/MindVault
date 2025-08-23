@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const rawDocs = await pdfLoader.load();
 
-    const docs = splitter.splitDocuments(rawDocs);
+    const docs = await splitter.splitDocuments(rawDocs);
 
     await addToQdrant(docs);
 
