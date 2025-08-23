@@ -1,103 +1,143 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { FileText, MessageCircle, Bot, AlertTriangle } from 'lucide-react';
+import UploadSection, { UploadInfo } from '@/components/UploadSection';
+import ChatSection from '@/components/ChatSection';
+
+export interface DocumentSource {
+  id: string;
+  type: 'pdf' | 'url' | 'text';
+  name: string;
+  uploadedAt: Date;
+}
+
+export default function NotebookApp() {
+  const [sources, setSources] = useState<DocumentSource[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDocumentUpload = async (uploadInfo: UploadInfo) => {
+    setIsProcessing(true);
+    setError(null);
+
+    let response: Response;
+
+    try {
+      // Determine the endpoint and prepare the request body based on the upload type
+      if (uploadInfo.type === 'pdf') {
+        const formData = new FormData();
+        formData.append('pdfFile', uploadInfo.data as File);
+        response = await fetch('/api/indexing/pdf', {
+          method: 'POST',
+          body: formData,
+        });
+      } else if (uploadInfo.type === 'url') {
+        response = await fetch('/api/indexing/website', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: uploadInfo.data }),
+        });
+      } else { // 'text'
+        response = await fetch('/api/indexing/text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: uploadInfo.data }),
+        });
+      }
+
+      if (!response.ok) {
+        // Try to parse the error message from the API response
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to process ${uploadInfo.name}.`);
+      }
+      
+      // If successful, create the new source object to display in the UI
+      const newSource: DocumentSource = {
+        id: Math.random().toString(36).substr(2, 9),
+        type: uploadInfo.type,
+        name: uploadInfo.name,
+        uploadedAt: new Date(),
+      };
+      setSources(prev => [...prev, newSource]);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      console.error("Upload failed:", errorMessage);
+      setError(`Failed to process ${uploadInfo.name}. Please try again.`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-900 text-gray-200">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header */}
+      
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+        {/* Error Message Display */}
+        {error && (
+            <Card className="mb-8 p-4 bg-red-900/50 border-red-500/30 text-red-300">
+                <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5"/>
+                    <span className="text-sm font-medium">{error}</span>
+                </div>
+            </Card>
+        )}
+
+        {/* Document Status Bar */}
+        {sources.length > 0 && (
+          <Card className="mb-5 p-4 bg-gray-800 border-green-500/30">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-green-400">
+                  {sources.length} document{sources.length !== 1 ? 's' : ''} ready
+                </span>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {sources.map((doc) => (
+                  <Badge 
+                    key={doc.id} 
+                    variant="secondary" 
+                    className="text-xs bg-gray-700 text-gray-300 border-gray-600"
+                  >
+                    {doc.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <div className="grid lg:grid-cols-2 gap-8 items-start">
+          {/* Left Column: Upload Section */}
+          <div className="order-1">
+            <div className="flex items-center gap-3 mb-4">
+              <FileText className="h-5 w-5 text-gray-400" />
+              <h2 className="text-xl font-semibold text-white">Add Sources</h2>
+            </div>
+            <UploadSection 
+              onUpload={handleDocumentUpload} 
+              isProcessing={isProcessing}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+
+          {/* Right Column: Chat Section */}
+          <div className="order-2">
+            <div className="flex items-center gap-3 mb-4">
+              <MessageCircle className="h-5 w-5 text-gray-400" />
+              <h2 className="text-xl font-semibold text-white">Chat With Your Documents</h2>
+            </div>
+            <ChatSection
+              disabled={sources.length === 0 || isProcessing}
+            />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }

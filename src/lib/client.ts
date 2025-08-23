@@ -1,6 +1,5 @@
-import { OpenAI } from "openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
-export const client = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+export const client = createGoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY!,
 });
