@@ -73,71 +73,70 @@ export default function NotebookApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-      
+    <div className="min-h-screen bg-background text-foreground">
+  <div className="container mx-auto px-4 py-8 max-w-7xl">
+    
+    {/* Error Card */}
+    {error && (
+      <Card className="mb-8 p-4 bg-destructive/20 border border-destructive text-destructive-foreground">
+        <div className="flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5"/>
+          <span className="text-sm font-medium">{error}</span>
+        </div>
+      </Card>
+    )}
 
-        {/* Error Message Display */}
-        {error && (
-            <Card className="mb-8 p-4 bg-red-900/50 border-red-500/30 text-red-300">
-                <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-5 w-5"/>
-                    <span className="text-sm font-medium">{error}</span>
-                </div>
-            </Card>
-        )}
-
-        {/* Document Status Bar */}
-        {sources.length > 0 && (
-          <Card className="mb-5 p-4 bg-gray-800 border-green-500/30">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-green-400">
-                  {sources.length} document{sources.length !== 1 ? 's' : ''} ready
-                </span>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {sources.map((doc) => (
-                  <Badge 
-                    key={doc.id} 
-                    variant="secondary" 
-                    className="text-xs bg-gray-700 text-gray-300 border-gray-600"
-                  >
-                    {doc.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
-          {/* Left Column: Upload Section */}
-          <div className="order-1">
-            <div className="flex items-center gap-3 mb-4">
-              <FileText className="h-5 w-5 text-gray-400" />
-              <h2 className="text-xl font-semibold text-white">Add Sources</h2>
-            </div>
-            <UploadSection 
-              onUpload={handleDocumentUpload} 
-              isProcessing={isProcessing}
-            />
+    {/* Document Status Bar */}
+    {sources.length > 0 && (
+      <Card className="mb-5 p-4 bg-card border border-secondary/40">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 bg-secondary rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-secondary">
+              {sources.length} document{sources.length !== 1 ? 's' : ''} ready
+            </span>
           </div>
-
-          {/* Right Column: Chat Section */}
-          <div className="order-2">
-            <div className="flex items-center gap-3 mb-4">
-              <MessageCircle className="h-5 w-5 text-gray-400" />
-              <h2 className="text-xl font-semibold text-white">Chat With Your Documents</h2>
-            </div>
-            <ChatSection
-              disabled={sources.length === 0 || isProcessing}
-            />
+          <div className="flex gap-2 flex-wrap">
+            {sources.map((doc) => (
+              <Badge 
+                key={doc.id} 
+                variant="secondary" 
+                className="text-xs bg-muted text-muted-foreground border border-border"
+              >
+                {doc.name}
+              </Badge>
+            ))}
           </div>
         </div>
+      </Card>
+    )}
+
+    <div className="grid lg:grid-cols-2 gap-8 items-start">
+      
+      {/* Left Column: Upload Section */}
+      <div className="order-1">
+        <div className="flex items-center gap-3 mb-4">
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-xl font-semibold text-foreground">Add Sources</h2>
+        </div>
+        <UploadSection 
+          onUpload={handleDocumentUpload} 
+          isProcessing={isProcessing}
+        />
+      </div>
+
+      {/* Right Column: Chat Section */}
+      <div className="order-2">
+        <div className="flex items-center gap-3 mb-4">
+          <MessageCircle className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-xl font-semibold text-foreground">Chat With Your Documents</h2>
+        </div>
+        <ChatSection
+          disabled={sources.length === 0 || isProcessing}
+        />
       </div>
     </div>
+  </div>
+</div>
   );
 }

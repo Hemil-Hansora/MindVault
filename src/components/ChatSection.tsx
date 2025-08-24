@@ -59,102 +59,104 @@ export default function ChatSection({ disabled = false }: ChatSectionProps) {
   };
 
   return (
-    <div className="w-full h-[650px] flex flex-col bg-gray-900 border border-gray-700 rounded-lg text-white">
-      <Conversation className="h-full">
-        <ConversationContent className="p-6">
-          {/* Render different states based on messages and disabled prop */}
-          {messages.length === 0 ? (
-            // If disabled, show "Upload a Document" message
-            disabled ? (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-                <div className="p-4 bg-gray-800 rounded-full">
-                  <MessageSquare className="h-8 w-8 text-gray-500" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-medium text-gray-400">
-                    Upload a Document First
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Add a PDF, website link, or text note to start chatting.
-                  </p>
-                </div>
+  <div className="w-full h-[650px] flex flex-col border rounded-3xl   text-foreground bg-background">
+  <Conversation className="h-full">
+    <ConversationContent className="p-6">
+      {/* Render different states based on messages and disabled prop */}
+      {messages.length === 0 ? (
+        // If disabled, show "Upload a Document" message
+        disabled ? (
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+            <div className="p-4 bg-muted rounded-full">
+              <MessageSquare className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-muted-foreground">
+                Upload a Document First
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Add a PDF, website link, or text note to start chatting.
+              </p>
+            </div>
+          </div>
+        ) : (
+          // If enabled and no messages, show "Ready to Chat" with samples
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
+            <div className="p-4 bg-primary/10 rounded-full">
+              <MessageSquare className="h-8 w-8 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-foreground">Ready to Chat!</h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Your documents are ready. Ask me anything about their content.
+              </p>
+            </div>
+            <div className="space-y-3 w-full max-w-md pt-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Try Asking
+              </p>
+              <div className="grid gap-2">
+                {sampleQuestions.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSampleQuestion(question)}
+                    className="p-3 text-left text-sm bg-card hover:bg-muted border border-border rounded-lg transition-colors"
+                  >
+                    {question}
+                  </button>
+                ))}
               </div>
-            ) : (
-              // If enabled and no messages, show "Ready to Chat" with samples
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
-                <div className="p-4 bg-blue-900/50 rounded-full">
-                  <MessageSquare className="h-8 w-8 text-blue-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-medium text-gray-200">Ready to Chat!</h3>
-                  <p className="text-sm text-gray-400 max-w-md">
-                    Your documents are ready. Ask me anything about their content.
-                  </p>
-                </div>
-                <div className="space-y-3 w-full max-w-md pt-4">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Try Asking
-                  </p>
-                  <div className="grid gap-2">
-                    {sampleQuestions.map((question, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSampleQuestion(question)}
-                        className="p-3 text-left text-sm bg-gray-800 hover:bg-gray-700/80 border border-gray-700 rounded-lg transition-colors"
-                      >
-                        {question}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )
-          ) : (
-            // Render the list of messages
-            messages.map((message) => (
-              <Message from={message.role} key={message.id}>
-                <MessageContent>
-                  {message.parts.map((part, i) => {
-                    if (part.type === 'text') {
-                      return (
-                        <Response key={`${message.id}-${i}`}>
-                          {part.text}
-                        </Response>
-                      );
-                    }
-                    return null;
-                  })}
-                </MessageContent>
-              </Message>
-            ))
-          )}
-          {/* Show a loader when the AI is thinking */}
-          {status === 'submitted' && <Loader />}
-        </ConversationContent>
-        <ConversationScrollButton  />
-      </Conversation>
+            </div>
+          </div>
+        )
+      ) : (
+        // Render the list of messages
+        messages.map((message) => (
+          <Message from={message.role} key={message.id}>
+            <MessageContent>
+              {message.parts.map((part, i) => {
+                if (part.type === "text") {
+                  return (
+                    <Response  className=" text-black " key={`${message.id}-${i}`}>{part.text}</Response>
+                  );
+                }
+                return null;
+              })}
+            </MessageContent>
+          </Message>
+        ))
+      )}
+      {/* Show a loader when the AI is thinking */}
+      {status === "submitted" && <Loader />}
+    </ConversationContent>
+    <ConversationScrollButton />
+  </Conversation>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-700 p-2 backdrop-blur-sm ">
-        <PromptInput onSubmit={handleSubmit} className='flex items-center px-3 '>
-          <PromptInputTextarea
-            onChange={(e) => setInput(e.target.value)}
-            value={input}
-            placeholder={
-              disabled
-                ? 'Upload a document to start chatting...'
-                : 'Ask anything about your documents...'
-            }
-            disabled={disabled || status === 'submitted'}
-            className=" border-gray-600 placeholder-black text-black"
-          />
-          <PromptInputSubmit
-          size={"icon"}
-            status={status}
-            disabled={!input.trim() || disabled}
-          />
-        </PromptInput>
-      </div>
-    </div>
-  );
+  {/* Input Area */}
+  <div className="border-t  rounded-b-lg p-2  ">
+    <PromptInput
+      onSubmit={handleSubmit}
+      className="flex items-center px-3 bg-card rounded-lg border border-border"
+    >
+      <PromptInputTextarea
+        onChange={(e) => setInput(e.target.value)}
+        value={input}
+        placeholder={
+          disabled
+            ? "Upload a document to start chatting..."
+            : "Ask anything about your documents..."
+        }
+        disabled={disabled || status === "submitted"}
+        className="placeholder-muted-foreground text-foreground bg-card"
+      />
+      <PromptInputSubmit
+        size={"icon"}
+        status={status}
+        disabled={!input.trim() || disabled}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+      />
+    </PromptInput>
+  </div>
+</div>
+  )
 }
